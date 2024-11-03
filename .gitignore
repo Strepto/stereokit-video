@@ -1,0 +1,13 @@
+# Editors
+**/.vs/
+**/.vscode/
+**/.idea/
+
+# User-specific files
+**/*.sln.docstates
+**/*.suo
+**/*.user
+
+# Build results
+**/bin/
+**/obj/

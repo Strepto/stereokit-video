@@ -1,0 +1,5 @@
+# Set end of line to auto. This will make the line endings OS specific on checkout, but keep LF on commit.
+* text=auto
+
+.sh text eol=lf # Set line endings to LF for shell scripts
+
