@@ -1,0 +1,16 @@
+﻿# EditorConfig is awesome: https://EditorConfig.org
+
+root = true
+
+[*]
+# New line preferences
+end_of_line = unset
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+
+[*.cs]
+# Indentation and spacing
+indent_size = 4
+max_line_length = 120

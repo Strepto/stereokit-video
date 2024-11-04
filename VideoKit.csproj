@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+
+		<ApplicationIcon>Platforms\Net\App.ico</ApplicationIcon>
+
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<LangVersion>13</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!--Don't compile Android code in this project, but do show it in the
+		    explorer window.-->
+		<Compile Remove="**\*.Android.cs" />
+		<Compile Remove="Platforms\Android\**" />
+		<None Include="**\*.Android.cs" />
+		<None Include="Platforms\Android\**" />
+		
+		<!-- Ignore rider files -->
+		<None Include=".idea\**" />
+
+		<Compile Remove="Projects\**" />
+		<EmbeddedResource Remove="Projects\**" />
+		<None Remove="Projects\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="LibVLCSharp" Version="3.9.0" />
+	  <PackageReference Include="StereoKit" Version="0.4.0-preview.873" />
+	  <PackageReference Include="VideoLAN.LibVLC.Android" Version="3.5.3" />
+	  <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
+	</ItemGroup>
+</Project>
