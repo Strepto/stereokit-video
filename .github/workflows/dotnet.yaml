@@ -1,0 +1,27 @@
+﻿name: Validate Build
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build
+  check_formatting:
+    runs-on: ubuntu-latest
+    name: Check Formatting with CSharpier
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          dotnet tool restore
+      - run: |
+          dotnet csharpier --check .
