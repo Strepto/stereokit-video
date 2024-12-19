@@ -57,15 +57,11 @@ public class VideoKitPlayer : IDisposable
     private Tex? VideoTexture { get; set; }
     private byte[]? _videoTextureData;
     private Sound _activeSoundStream = Sound.CreateStream(4); // 4 seconds buffer (arbitrary number)
+    private SoundInst _activeSoundInst;
     private MediaPlayer? _mediaPlayer;
     private MemoryMappedFile? _mappedFileForVideo;
     private MemoryMappedViewAccessor? _currentMappedViewAccessor;
     private readonly float[] _tempAudioBuffer = new float[4096 * 16];
-    private float _timeRefAble;
-    private bool _isDisposed;
-    private static readonly Vec3 UiPosition = new Vec3(0, -0.2f, -0.5f);
-    private Pose _uiPose = new Pose(UiPosition, Quat.LookAt(UiPosition, Vec3.Zero, Vec3.Up));
-    private double _timeSinceLastSeekSeconds;
 
     private static uint AlignToNearestMultipleOf32VlcQuirk(uint size)
     {
@@ -86,7 +82,11 @@ public class VideoKitPlayer : IDisposable
         return VideoTexture;
     }
 
-    public async void PlayVideoAsync(string ytVideoId)
+    /// <summary>
+    /// </summary>
+    /// <param name="videoURI">Best if the URL allows "Range processing" to support skipping in the video.
+    /// On android the URL must be https (or hack to support http in the manifest. Google it.)</param>
+    public async void PlayVideoAsync(Uri videoURI)
     {
         // Run Core.Initialize on windows as its ran in the MainActivity in android
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -106,11 +106,7 @@ public class VideoKitPlayer : IDisposable
         mediaPlayer.Stopped += (_, _) => processingCancellationTokenSource.CancelAfter(1);
 
         // TODO: This can be any url.
-        // Best if the URL allows "Range processing" to support skipping in the video.
-        // On android the URL must be https (or hack to support http in the manifest. Google it.)
-        // var uri = new Uri(@"file:///./assets/sk-intro-unofficial.mp4");
-        var uri = new Uri(@"https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4");
-        using var media = new Media(libVlc, uri);
+        using var media = new Media(libVlc, videoURI);
 
         // Set the audio format and sample rate.
         mediaPlayer.SetAudioFormat(AudioFormat, AudioSampleRate, AudioChannels);
@@ -122,7 +118,7 @@ public class VideoKitPlayer : IDisposable
         mediaPlayer.SetVideoCallbacks(Lock, null, Display);
         mediaPlayer.Play(media);
         // TODO: Move the sound-stream around a bit
-        _activeSoundStream.Play(Vec3.Zero);
+        _activeSoundInst = _activeSoundStream.Play(Vec3.Zero);
         mediaPlayer.Time = 0;
 
         try
@@ -138,57 +134,39 @@ public class VideoKitPlayer : IDisposable
             Console.WriteLine("Video processing stopped.");
         }
 
-        _isDisposed = true;
+        _mediaPlayer = null;
         Console.WriteLine("Video processing finished.");
     }
+
+    public void Play() => _mediaPlayer?.Play();
+
+    public void Pause() => _mediaPlayer?.Pause();
+
+    public long Time
+    {
+        get => _mediaPlayer?.Time ?? 0;
+        set
+        {
+            if (_mediaPlayer == null) return;
+            long clamped = Math.Clamp(value, 0, _mediaPlayer.Length);
+            // The media player doesn't like being set to the time it's already
+            // at.
+            if (clamped == _mediaPlayer.Time) return;
+            _mediaPlayer.Time = clamped;
+        }
+    }
+
+    public long Length => _mediaPlayer?.Length ?? 0;
+
+    public Vec3 SoundPosition { get => _activeSoundInst.Position; set => _activeSoundInst.Position = value; }
 
     /// <summary>
     /// Stepper to update the video texture and draw the UI
     /// </summary>
     public void Step()
     {
-        if (_mediaPlayer == null || _isDisposed)
+        if (_mediaPlayer == null)
             return;
-
-        UI.WindowBegin("VideoKitPlayer", ref _uiPose, Vec2.UnitX * 0.3f);
-
-        if (UI.Button("Play"))
-            _mediaPlayer.Play();
-        if (UI.Button("Pause"))
-            _mediaPlayer.Pause();
-        if (UI.Button("Skip -15s"))
-            _mediaPlayer.Time = Math.Max(0, _mediaPlayer.Time - 15_000);
-        if (UI.Button("Skip +15s"))
-            _mediaPlayer.Time = Math.Min(_mediaPlayer.Length, _mediaPlayer.Time + 15_000);
-
-        if (!UI.IsInteracting(Handed.Left) && !UI.IsInteracting(Handed.Right) && _lastRenderedFrame % 100 == 0)
-        {
-            // If the time ref changes when releasing the slider the seek will fail...
-            // This is a workaround for that.
-            _timeRefAble = _mediaPlayer.Time;
-        }
-
-        if (
-            _timeSinceLastSeekSeconds > 1
-            && UI.HSlider("timer", ref _timeRefAble, 0, _mediaPlayer.Length, step: 0, notifyOn: UINotify.Finalize)
-        )
-        {
-            Console.WriteLine("Seeking to " + _timeRefAble);
-            _mediaPlayer.SeekTo(TimeSpan.FromMilliseconds(_timeRefAble));
-            _timeSinceLastSeekSeconds = 0;
-        }
-
-        _timeSinceLastSeekSeconds += Time.Step;
-
-        UI.Text(
-            "Time: "
-                + TimeSpan.FromMilliseconds(_mediaPlayer.Time).ToString(@"hh\:mm\:ss")
-                + "/"
-                + TimeSpan.FromMilliseconds(_mediaPlayer.Length).ToString(@"hh\:mm\:ss")
-        );
-
-        UI.WindowEnd();
-
         if (_videoFrameCounter == _lastRenderedFrame)
             return;
         if (_videoFrameCounter == 1)
