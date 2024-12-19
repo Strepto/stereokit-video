@@ -28,7 +28,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="LibVLCSharp" Version="3.9.0" />
-	  <PackageReference Include="StereoKit" Version="0.4.0-preview.873" />
+	  <PackageReference Include="StereoKit" Version="0.4.0-preview.1133" />
 	  <PackageReference Include="VideoLAN.LibVLC.Android" Version="3.5.3" />
 	  <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
 	</ItemGroup>
