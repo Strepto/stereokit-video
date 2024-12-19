@@ -13,7 +13,7 @@ Any online video can be played by providing the URL to the video file, or local 
 
 ## Demo
 
-<video src="https://github.com/user-attachments/assets/821a1266-af5c-4d54-b7b5-669442339fe0" width="450"/>
+<video src="https://github.com/user-attachments/assets/821a1266-af5c-4d54-b7b5-669442339fe0" width="450"></video>
 
 ## Features
 
