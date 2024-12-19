@@ -76,6 +76,7 @@ public class VideoKitPlayer : IDisposable
         {
             Anisoptropy = 4,
             Id = "VideoTextureCool",
+            AddressMode = TexAddress.Clamp,
         };
         _videoTextureData = new byte[Pitch * Lines];
         VideoTexture.SetSize((int)Pitch, (int)Lines);

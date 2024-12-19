@@ -12,15 +12,11 @@ class Program
         if (!SK.Initialize(settings))
             return;
 
+        // Create assets used by the app
+
         using VideoKitPlayer videoPlayer = new();
         videoPlayer.PlayVideoAsync(new Uri("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"));
-
-        Material videoMaterial = Material.Unlit.Copy();
-        videoMaterial[MatParamName.DiffuseTex] = videoPlayer.InitializeSoundAndTexture();
-
-        // Create assets used by the app
-        Pose cubePose = new Pose(0, 0, -1.5f);
-        Model cube = Model.FromMesh(Mesh.GenerateRoundedCube(new Vec3(16, 9, 1) / 10, 0.02f), videoMaterial);
+        Sprite videoSprite = Sprite.FromTex( videoPlayer.InitializeSoundAndTexture(), SpriteType.Single );
 
         Renderer.SkyTex = Tex.FromCubemap("sky/space.ktx2");
 
@@ -30,16 +26,18 @@ class Program
         SK.Run(() =>
         {
             videoPlayer.Step();
+            videoPlayer.SoundPosition = uiPose.position;
 
-            UI.Handle("Cube", ref cubePose, cube.Bounds);
-            videoPlayer.SoundPosition = cubePose.position;
-            cube.Draw(cubePose.ToMatrix());
+            UI.WindowBegin("VideoKitPlayer", ref uiPose, new Vec2(0.4f,0));
 
-            UI.WindowBegin("VideoKitPlayer", ref uiPose, Vec2.UnitX * 0.3f);
+            UI.Image(videoSprite, new Vec2(UI.LayoutRemaining.x,0));
 
             if (UI.Button("Play"))      videoPlayer.Play();
+            UI.SameLine();
             if (UI.Button("Pause"))     videoPlayer.Pause();
+            UI.SameLine();
             if (UI.Button("Skip -15s")) videoPlayer.Time -= 15_000;
+            UI.SameLine();
             if (UI.Button("Skip +15s")) videoPlayer.Time += 15_000;
 
             if (UI.HSlider("timer", ref timestampDisplay, 0, videoPlayer.Length, step: 0, notifyOn: UINotify.Finalize))
