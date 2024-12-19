@@ -20,6 +20,8 @@ class Program
         Pose cubePose = new Pose(0, 0, -1.5f);
         Model cube = Model.FromMesh(Mesh.GenerateRoundedCube(new Vec3(16, 9, 1) / 10, 0.02f), Material.UI);
 
+        Renderer.SkyTex = Tex.FromCubemap("sky/space.ktx2");
+
         Material videoMaterial = Material.Unlit;
         videoMaterial[MatParamName.DiffuseTex] = texture;
 
