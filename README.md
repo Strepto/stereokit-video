@@ -50,8 +50,9 @@ Any improvements to the setup would be appreciated as pull requests.
 3. Play a video:
 
     ```csharp
-    // NOTE: As of writing the video path is hardcoded in the VideoKitPlayer class...
-    player.PlayVideoAsync("path/to/video.mp4");
+    var onlineUrl = new Uri("https://example.com/video.mp4");
+    var offlineUrl = new Uri("file://path/to/video.mp4")
+    player.PlayVideoAsync(onlineUrl);
     ```
 
 4. Call the `Step` method in your Step loop to handle UI and rendering:
